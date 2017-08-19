@@ -1,0 +1,634 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css"/>
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Linux C," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="TINY Web Server源码阅读最近利用闲暇时间在阅读《HTTP权威指南》，阅读到第5章提到了最小的Perl Web Server，就想到了如何实现一个简单的web server，谷歌后发现方式很多，比如nc -kl , python SimpleHttpServer, Jetty等，但是感觉最适合的还是CSAPP中11章涉及的tiny web server，之前阅读CSAPP到这里的时候只">
+<meta property="og:type" content="article">
+<meta property="og:title" content="TINY Web Server源码阅读">
+<meta property="og:url" content="http://vonzhou.com/2016/05/08/TINY Web Server源码阅读/index.html">
+<meta property="og:site_name" content="编程之路">
+<meta property="og:description" content="TINY Web Server源码阅读最近利用闲暇时间在阅读《HTTP权威指南》，阅读到第5章提到了最小的Perl Web Server，就想到了如何实现一个简单的web server，谷歌后发现方式很多，比如nc -kl , python SimpleHttpServer, Jetty等，但是感觉最适合的还是CSAPP中11章涉及的tiny web server，之前阅读CSAPP到这里的时候只">
+<meta property="og:updated_time" content="2016-05-08T12:10:40.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="TINY Web Server源码阅读">
+<meta name="twitter:description" content="TINY Web Server源码阅读最近利用闲暇时间在阅读《HTTP权威指南》，阅读到第5章提到了最小的Perl Web Server，就想到了如何实现一个简单的web server，谷歌后发现方式很多，比如nc -kl , python SimpleHttpServer, Jetty等，但是感觉最适合的还是CSAPP中11章涉及的tiny web server，之前阅读CSAPP到这里的时候只">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"right","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+  <title> TINY Web Server源码阅读 | 编程之路 </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?fae675cd8a96853307d3cf916435d5f5";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-right page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">编程之路</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">We fear the thing we want most.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-home fa-fw"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-user fa-fw"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-archive fa-fw"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-tags fa-fw"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                TINY Web Server源码阅读
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-05-08T11:01:07+08:00" content="2016-05-08">
+              2016-05-08
+            </time>
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/05/08/TINY Web Server源码阅读/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/05/08/TINY Web Server源码阅读/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="TINY-Web-Server源码阅读"><a href="#TINY-Web-Server源码阅读" class="headerlink" title="TINY Web Server源码阅读"></a>TINY Web Server源码阅读</h1><p>最近利用闲暇时间在阅读《HTTP权威指南》，阅读到第5章提到了最小的Perl Web Server，就想到了如何实现一个简单的web server，谷歌后发现方式很多，比如nc -kl , python SimpleHttpServer, Jetty等，但是感觉最适合的还是CSAPP中11章涉及的tiny web server，之前阅读CSAPP到这里的时候只是粗略的理解，但是在深入理解HTTP结构后，画面就更清晰了。</p>
+<a id="more"></a>
+<p>之所以要学习这个tiny web server, CSAPP已经告诫我们了。</p>
+<blockquote>
+<p>Tiny is an interesting program. It combines many of the ideas that we have learned about, such as process control, Unix I/O, the sockets interface, and HTTP, in only 250 lines of code. While it lacks the functionality, robustness, and security of a real server, it is powerful enough to serve both static and dynamic content to real Web browsers. We encourage you to study it and implement it yourself. It is quite exciting (even for the authors!) to point a real browser at your own server and watch it display a complicated Web page with text and graphics.</p>
+</blockquote>
+<h2 id="TINY的主程序main"><a href="#TINY的主程序main" class="headerlink" title="TINY的主程序main"></a>TINY的主程序main</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> **argv)</span></span><br><span class="line"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> listenfd, connfd, port, clientlen;</span><br><span class="line">    <span class="keyword">struct</span> sockaddr_in clientaddr;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (argc != <span class="number">2</span>) &#123;</span><br><span class="line">	   <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"usage: %s &lt;port&gt;\n"</span>, argv[<span class="number">0</span>]);</span><br><span class="line">	   <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    port = atoi(argv[<span class="number">1</span>]);</span><br><span class="line">    <span class="comment">//打开监听套接字</span></span><br><span class="line">    listenfd = Open_listenfd(port);</span><br><span class="line">    <span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">	   clientlen = <span class="keyword">sizeof</span>(clientaddr);</span><br><span class="line">       <span class="comment">// 连接请求</span></span><br><span class="line">	   connfd = Accept(listenfd, (SA *)&amp;clientaddr, &amp;clientlen);</span><br><span class="line">       <span class="comment">// 具体处理请求</span></span><br><span class="line">	   doit(connfd);</span><br><span class="line">	   Close(connfd);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Open_clientfd 就是打开一个TCP套接字，设置SO_REUSEADDR选项;服务器采用循环处理模式。</p>
+<h2 id="处理HTTP请求doit"><a href="#处理HTTP请求doit" class="headerlink" title="处理HTTP请求doit"></a>处理HTTP请求doit</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span><br><span class="line"> * doit - handle one HTTP request/response transaction</span><br><span class="line"> */</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">doit</span><span class="params">(<span class="keyword">int</span> fd)</span></span><br><span class="line"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> is_static;</span><br><span class="line">    <span class="keyword">struct</span> stat sbuf;</span><br><span class="line">    <span class="keyword">char</span> buf[MAXLINE], method[MAXLINE], uri[MAXLINE], version[MAXLINE];</span><br><span class="line">    <span class="keyword">char</span> filename[MAXLINE], cgiargs[MAXLINE];</span><br><span class="line">    <span class="comment">// Robust IO 看CSAPP第10章</span></span><br><span class="line">    <span class="keyword">rio_t</span> rio;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Read request line and headers */</span></span><br><span class="line">    Rio_readinitb(&amp;rio, fd);</span><br><span class="line">    <span class="comment">// 读取一行，在这里是request line</span></span><br><span class="line">    Rio_readlineb(&amp;rio, buf, MAXLINE);</span><br><span class="line">    <span class="comment">// 解析出请求行中的HTTP 方法，uri，版本信息</span></span><br><span class="line">    <span class="built_in">sscanf</span>(buf, <span class="string">"%s %s %s"</span>, method, uri, version);</span><br><span class="line">    <span class="keyword">if</span> (strcasecmp(method, <span class="string">"GET"</span>)) &#123;</span><br><span class="line">        <span class="comment">// 为了简单现在只是支持GET方法，非GET方法，就告知客户端我们无能为力</span></span><br><span class="line">       clienterror(fd, method, <span class="string">"501"</span>, <span class="string">"Not Implemented"</span>,</span><br><span class="line">                <span class="string">"Tiny does not implement this method"</span>);</span><br><span class="line">        return;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 消耗请求头部</span></span><br><span class="line">    read_requesthdrs(&amp;rio);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Parse URI from GET request */</span></span><br><span class="line">    is_static = parse_uri(uri, filename, cgiargs);</span><br><span class="line">    <span class="comment">// 对应的资源不存在</span></span><br><span class="line">    <span class="keyword">if</span> (stat(filename, &amp;sbuf) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">	    clienterror(fd, filename, <span class="string">"404"</span>, <span class="string">"Not found"</span>,</span><br><span class="line">		    <span class="string">"Tiny couldn't find this file"</span>);</span><br><span class="line">	    return;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 请求静态资源</span></span><br><span class="line">    <span class="keyword">if</span> (is_static) &#123; <span class="comment">/* Serve static content */</span></span><br><span class="line">	    <span class="keyword">if</span> (!(S_ISREG(sbuf.st_mode)) || !(S_IRUSR &amp; sbuf.st_mode)) &#123; </span><br><span class="line">	        clienterror(fd, filename, <span class="string">"403"</span>, <span class="string">"Forbidden"</span>,</span><br><span class="line">			<span class="string">"Tiny couldn't read the file"</span>);</span><br><span class="line">	        return;</span><br><span class="line">	    &#125;</span><br><span class="line">	    serve_static(fd, filename, sbuf.st_size);        </span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123; <span class="comment">/* Serve dynamic content */</span></span><br><span class="line">	    <span class="keyword">if</span> (!(S_ISREG(sbuf.st_mode)) || !(S_IXUSR &amp; sbuf.st_mode)) &#123; </span><br><span class="line">	        clienterror(fd, filename, <span class="string">"403"</span>, <span class="string">"Forbidden"</span>,</span><br><span class="line">			<span class="string">"Tiny couldn't run the CGI program"</span>);</span><br><span class="line">	        return;</span><br><span class="line">	    &#125;</span><br><span class="line">	    serve_dynamic(fd, filename, cgiargs);               &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="错误处理-clienterror"><a href="#错误处理-clienterror" class="headerlink" title="错误处理 clienterror"></a>错误处理 clienterror</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span><br><span class="line"> * clienterror - returns an error message to the client</span><br><span class="line"> */</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">clienterror</span><span class="params">(<span class="keyword">int</span> fd, <span class="keyword">char</span> *cause, <span class="keyword">char</span> *errnum,</span><br><span class="line">		 <span class="keyword">char</span> *shortmsg, <span class="keyword">char</span> *longmsg)</span></span><br><span class="line"></span>&#123;</span><br><span class="line">    <span class="keyword">char</span> buf[MAXLINE], body[MAXBUF];</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Build the HTTP response body */</span></span><br><span class="line">    <span class="built_in">sprintf</span>(body, <span class="string">"&lt;html&gt;&lt;title&gt;Tiny Error&lt;/title&gt;"</span>);</span><br><span class="line">    <span class="built_in">sprintf</span>(body, <span class="string">"%s&lt;body bgcolor="</span><span class="string">"ffffff"</span><span class="string">"&gt;\r\n"</span>, body);</span><br><span class="line">    <span class="built_in">sprintf</span>(body, <span class="string">"%s%s: %s\r\n"</span>, body, errnum, shortmsg);</span><br><span class="line">    <span class="built_in">sprintf</span>(body, <span class="string">"%s&lt;p&gt;%s: %s\r\n"</span>, body, longmsg, cause);</span><br><span class="line">    <span class="built_in">sprintf</span>(body, <span class="string">"%s&lt;hr&gt;&lt;em&gt;The Tiny Web server&lt;/em&gt;\r\n"</span>, body);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 构建响应行，响应头部 */</span></span><br><span class="line">    <span class="built_in">sprintf</span>(buf, <span class="string">"HTTP/1.0 %s %s\r\n"</span>, errnum, shortmsg);</span><br><span class="line">    Rio_writen(fd, buf, <span class="built_in">strlen</span>(buf));</span><br><span class="line">    <span class="built_in">sprintf</span>(buf, <span class="string">"Content-type: text/html\r\n"</span>);</span><br><span class="line">    Rio_writen(fd, buf, <span class="built_in">strlen</span>(buf));</span><br><span class="line">    <span class="built_in">sprintf</span>(buf, <span class="string">"Content-length: %d\r\n\r\n"</span>, (int)<span class="built_in">strlen</span>(body));<span class="comment">//空行结束response headers</span></span><br><span class="line">    Rio_writen(fd, buf, <span class="built_in">strlen</span>(buf));</span><br><span class="line">    Rio_writen(fd, body, <span class="built_in">strlen</span>(body));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="处理请求头部"><a href="#处理请求头部" class="headerlink" title="处理请求头部"></a>处理请求头部</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span><br><span class="line"> * read_requesthdrs - read and parse HTTP request headers</span><br><span class="line"> */</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">read_requesthdrs</span><span class="params">(rio_t *rp)</span></span><br><span class="line"></span>&#123;</span><br><span class="line">    <span class="keyword">char</span> buf[MAXLINE];</span><br><span class="line"></span><br><span class="line">    Rio_readlineb(rp, buf, MAXLINE);</span><br><span class="line">    <span class="keyword">while</span>(<span class="built_in">strcmp</span>(buf, <span class="string">"\r\n"</span>)) &#123;<span class="comment">// 读取所有行，知道遇到空行，包括空行也会读到</span></span><br><span class="line">	    Rio_readlineb(rp, buf, MAXLINE);</span><br><span class="line">	    <span class="built_in">printf</span>(<span class="string">"%s"</span>, buf);</span><br><span class="line">    &#125;</span><br><span class="line">    return;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里仅仅是打印出来。</p>
+<h2 id="解析URI"><a href="#解析URI" class="headerlink" title="解析URI"></a>解析URI</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span><br><span class="line"> * parse_uri - parse URI into filename and CGI args</span><br><span class="line"> *             return 0 if dynamic content, 1 if static</span><br><span class="line"> */</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">parse_uri</span><span class="params">(<span class="keyword">char</span> *uri, <span class="keyword">char</span> *filename, <span class="keyword">char</span> *cgiargs)</span></span><br><span class="line"></span>&#123;</span><br><span class="line">    <span class="keyword">char</span> *ptr;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!<span class="built_in">strstr</span>(uri, <span class="string">"cgi-bin"</span>)) &#123;  <span class="comment">/* Static content */</span></span><br><span class="line">	    <span class="built_in">strcpy</span>(cgiargs, <span class="string">""</span>);</span><br><span class="line">	    <span class="built_in">strcpy</span>(filename, <span class="string">"."</span>);</span><br><span class="line">	    <span class="built_in">strcat</span>(filename, uri);</span><br><span class="line">	    <span class="keyword">if</span> (uri[<span class="built_in">strlen</span>(uri)<span class="number">-1</span>] == <span class="string">'/'</span>)</span><br><span class="line">	        <span class="built_in">strcat</span>(filename, <span class="string">"home.html"</span>);</span><br><span class="line">	    return <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;  <span class="comment">/* Dynamic content */</span></span><br><span class="line">	    ptr = index(uri, <span class="string">'?'</span>);</span><br><span class="line">	    <span class="keyword">if</span> (ptr) &#123;</span><br><span class="line">	        <span class="built_in">strcpy</span>(cgiargs, ptr+<span class="number">1</span>);</span><br><span class="line">	    *ptr = <span class="string">'\0'</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">else</span></span><br><span class="line">	    <span class="built_in">strcpy</span>(cgiargs, <span class="string">""</span>);</span><br><span class="line">	    </span><br><span class="line">	<span class="built_in">strcpy</span>(filename, <span class="string">"."</span>);</span><br><span class="line">	<span class="built_in">strcat</span>(filename, uri);</span><br><span class="line">	return <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>解析uri是处理资源映射的问题，这里直接看uri中是否包含字符串cgi-bin。</p>
+<h2 id="处理静态请求"><a href="#处理静态请求" class="headerlink" title="处理静态请求"></a>处理静态请求</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span><br><span class="line"> * serve_static - copy a file back to the client</span><br><span class="line"> */</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">serve_static</span><span class="params">(<span class="keyword">int</span> fd, <span class="keyword">char</span> *filename, <span class="keyword">int</span> filesize)</span></span><br><span class="line"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> srcfd;</span><br><span class="line">    <span class="keyword">char</span> *srcp, filetype[MAXLINE], buf[MAXBUF];</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Send response headers to client */</span></span><br><span class="line">    get_filetype(filename, filetype);</span><br><span class="line">    <span class="built_in">sprintf</span>(buf, <span class="string">"HTTP/1.0 200 OK\r\n"</span>);</span><br><span class="line">    <span class="built_in">sprintf</span>(buf, <span class="string">"%sServer: Tiny Web Server\r\n"</span>, buf);</span><br><span class="line">    <span class="built_in">sprintf</span>(buf, <span class="string">"%sContent-length: %d\r\n"</span>, buf, filesize);</span><br><span class="line">    <span class="built_in">sprintf</span>(buf, <span class="string">"%sContent-type: %s\r\n\r\n"</span>, buf, filetype);</span><br><span class="line">    Rio_writen(fd, buf, <span class="built_in">strlen</span>(buf));</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Send response body to client */</span></span><br><span class="line">    srcfd = Open(filename, O_RDONLY, <span class="number">0</span>);</span><br><span class="line">    srcp = Mmap(<span class="number">0</span>, filesize, PROT_READ, MAP_PRIVATE, srcfd, <span class="number">0</span>);</span><br><span class="line">    Close(srcfd);</span><br><span class="line">    Rio_writen(fd, srcp, filesize);</span><br><span class="line">    Munmap(srcp, filesize);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span><br><span class="line"> * get_filetype - derive file type from file name</span><br><span class="line"> */</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">get_filetype</span><span class="params">(<span class="keyword">char</span> *filename, <span class="keyword">char</span> *filetype)</span></span><br><span class="line"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">strstr</span>(filename, <span class="string">".html"</span>))</span><br><span class="line">	    <span class="built_in">strcpy</span>(filetype, <span class="string">"text/html"</span>);</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (strstr(filename, <span class="string">".gif"</span>))</span><br><span class="line">	    <span class="built_in">strcpy</span>(filetype, <span class="string">"image/gif"</span>);</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (strstr(filename, <span class="string">".jpg"</span>))</span><br><span class="line">	    <span class="built_in">strcpy</span>(filetype, <span class="string">"image/jpeg"</span>);</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">	    <span class="built_in">strcpy</span>(filetype, <span class="string">"text/plain"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>先返回了响应头，然后采用内存映射读取文件，发送给client。</p>
+<h2 id="处理动态请求cgi"><a href="#处理动态请求cgi" class="headerlink" title="处理动态请求cgi"></a>处理动态请求cgi</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span><br><span class="line"> * serve_dynamic - run a CGI program on behalf of the client</span><br><span class="line"> */</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">serve_dynamic</span><span class="params">(<span class="keyword">int</span> fd, <span class="keyword">char</span> *filename, <span class="keyword">char</span> *cgiargs)</span></span><br><span class="line"></span>&#123;</span><br><span class="line">    <span class="keyword">char</span> buf[MAXLINE], *emptylist[] = &#123; <span class="literal">NULL</span> &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Return first part of HTTP response */</span></span><br><span class="line">    <span class="built_in">sprintf</span>(buf, <span class="string">"HTTP/1.0 200 OK\r\n"</span>);</span><br><span class="line">    Rio_writen(fd, buf, <span class="built_in">strlen</span>(buf));</span><br><span class="line">    <span class="built_in">sprintf</span>(buf, <span class="string">"Server: Tiny Web Server\r\n"</span>);</span><br><span class="line">    Rio_writen(fd, buf, <span class="built_in">strlen</span>(buf));</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (Fork() == <span class="number">0</span>) &#123; <span class="comment">/* child */</span></span><br><span class="line">	    <span class="comment">/* Real server would set all CGI vars here */</span></span><br><span class="line">	    setenv(<span class="string">"QUERY_STRING"</span>, cgiargs, <span class="number">1</span>);</span><br><span class="line">	    Dup2(fd, STDOUT_FILENO);         <span class="comment">/* Redirect stdout to client */</span></span><br><span class="line">	    Execve(filename, emptylist, environ); <span class="comment">/* Run CGI program */</span></span><br><span class="line">    &#125;</span><br><span class="line">    Wait(<span class="literal">NULL</span>); <span class="comment">/* Parent waits for and reaps child */</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在子进程中执行对应的cgi程序，参数的传递是通过环境变量，而且子进程继承了父进程描述符，所以可以操作连接套接字。</p>
+<h2 id="小插曲"><a href="#小插曲" class="headerlink" title="小插曲"></a>小插曲</h2>
+      
+    </div>
+
+    <div>
+      
+        
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Linux-C/" rel="tag">#Linux C</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/05/07/Haskell实现Permutation/" rel="next" title="Permutation实现（Haskell）">
+                <i class="fa fa-chevron-left"></i> Permutation实现（Haskell）
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/05/17/diff -e 命令计算差异/" rel="prev" title="diff -e 命令计算差异">
+                diff -e 命令计算差异 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2016/05/08/TINY Web Server源码阅读/"
+           data-title="TINY Web Server源码阅读" data-url="http://vonzhou.com/2016/05/08/TINY Web Server源码阅读/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/default_avatar.jpg"
+               alt="vonzhou" />
+          <p class="site-author-name" itemprop="name">vonzhou</p>
+          <p class="site-description motion-element" itemprop="description">A Programmer's Notes</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">21</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">8</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/vonzhou" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://www.zhihu.com/people/vonzhou" target="_blank" title="知乎">
+                  
+                    <i class="fa fa-globe"></i>
+                  
+                  知乎
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#TINY-Web-Server源码阅读"><span class="nav-number">1.</span> <span class="nav-text">TINY Web Server源码阅读</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#TINY的主程序main"><span class="nav-number">1.1.</span> <span class="nav-text">TINY的主程序main</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#处理HTTP请求doit"><span class="nav-number">1.2.</span> <span class="nav-text">处理HTTP请求doit</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#错误处理-clienterror"><span class="nav-number">1.3.</span> <span class="nav-text">错误处理 clienterror</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#处理请求头部"><span class="nav-number">1.4.</span> <span class="nav-text">处理请求头部</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#解析URI"><span class="nav-number">1.5.</span> <span class="nav-text">解析URI</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#处理静态请求"><span class="nav-number">1.6.</span> <span class="nav-text">处理静态请求</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#处理动态请求cgi"><span class="nav-number">1.7.</span> <span class="nav-text">处理动态请求cgi</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#小插曲"><span class="nav-number">1.8.</span> <span class="nav-text">小插曲</span></a></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">vonzhou</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"vonzhou"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+  
+
+
+
+
+
+  
+  
+  
+
+  
+
+  
+
+</body>
+</html>

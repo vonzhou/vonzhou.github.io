@@ -1,0 +1,664 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css"/>
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Java," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="使用Spring test测试Controller以前测试一个Contoller是否实现了相应的功能（包括DAO层是否正确工作），我们的做法是mvn clean package然后启动tomcat启动应用，然后打开浏览器（或者使用curl）访问一个URL，然后看webapp的日志输出，据此判断功能是否实现了启。动tomcat好累。或者有时候写个Main方法测试有的功能，太low了。
+是时候使用Sp">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用Spring test测试Controller">
+<meta property="og:url" content="http://vonzhou.com/2016/07/24/使用Spring test测试Controller/index.html">
+<meta property="og:site_name" content="编程之路">
+<meta property="og:description" content="使用Spring test测试Controller以前测试一个Contoller是否实现了相应的功能（包括DAO层是否正确工作），我们的做法是mvn clean package然后启动tomcat启动应用，然后打开浏览器（或者使用curl）访问一个URL，然后看webapp的日志输出，据此判断功能是否实现了启。动tomcat好累。或者有时候写个Main方法测试有的功能，太low了。
+是时候使用Sp">
+<meta property="og:updated_time" content="2016-08-24T14:54:43.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="使用Spring test测试Controller">
+<meta name="twitter:description" content="使用Spring test测试Controller以前测试一个Contoller是否实现了相应的功能（包括DAO层是否正确工作），我们的做法是mvn clean package然后启动tomcat启动应用，然后打开浏览器（或者使用curl）访问一个URL，然后看webapp的日志输出，据此判断功能是否实现了启。动tomcat好累。或者有时候写个Main方法测试有的功能，太low了。
+是时候使用Sp">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"right","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+  <title> 使用Spring test测试Controller | 编程之路 </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?fae675cd8a96853307d3cf916435d5f5";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-right page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">编程之路</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">We fear the thing we want most.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-home fa-fw"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-user fa-fw"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-archive fa-fw"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-tags fa-fw"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                使用Spring test测试Controller
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-07-24T12:38:29+08:00" content="2016-07-24">
+              2016-07-24
+            </time>
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/07/24/使用Spring test测试Controller/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/07/24/使用Spring test测试Controller/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="使用Spring-test测试Controller"><a href="#使用Spring-test测试Controller" class="headerlink" title="使用Spring test测试Controller"></a>使用Spring test测试Controller</h1><p>以前测试一个Contoller是否实现了相应的功能（包括DAO层是否正确工作），我们的做法是<code>mvn clean package</code>然后启动tomcat启动应用，然后打开浏览器（或者使用curl）访问一个URL，然后看webapp的日志输出，据此判断功能是否实现了启。动tomcat好累。或者有时候写个Main方法测试有的功能，太low了。</p>
+<p>是时候使用Spring test了。</p>
+<a id="more"></a>
+<h2 id="MockMvc初识"><a href="#MockMvc初识" class="headerlink" title="MockMvc初识"></a>MockMvc初识</h2><p> MockMvc是Main entry point for server-side Spring MVC test support。只有一个方法 <code>perform</code>， 我们正是通过他来执行我们的各种get，post方法，返回一个ResultActions，然后可以通过ResultActions来链式的执行各种动作。ResultActions提供了三个方法：</p>
+<table>
+<thead>
+<tr>
+<th>return type</th>
+<th>method</th>
+<th>desc</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ResultActions</td>
+<td>andDo(ResultHandler handler)</td>
+<td>Perform a general action.</td>
+</tr>
+<tr>
+<td>ResultActions</td>
+<td>andExpect(ResultMatcher matcher)</td>
+<td>Perform an expectation.</td>
+</tr>
+<tr>
+<td>MvcResult</td>
+<td>andReturn()</td>
+<td>Return the result of the executed request for direct access to the results.</td>
+</tr>
+</tbody>
+</table>
+<p>测试的目的无非就是清楚我们的Controller映射的方法能够正确处理请求，并且设置了modle，返回了view，从而可以把下面的DAO层都串联起来，及早发现问题。</p>
+<p>接下来会通过Spring test的print() ResultHandler来打印出测试过程中一个请求的处理详情。重要的有请求的方法，参数，URL，映射的handler的方法，响应的状态码。</p>
+<h2 id="测试Controller"><a href="#测试Controller" class="headerlink" title="测试Controller"></a>测试Controller</h2><p>下面没有罗列代码，只是放了执行的具体信息，从中可以看到自己的Conroller中方法实现是否正确。<a href="https://github.com/vonzhou/SpringInAction3/tree/master/spitter-web" target="_blank" rel="external">完整代码</a></p>
+<h3 id="测试普通的Get请求及参数"><a href="#测试普通的Get请求及参数" class="headerlink" title="测试普通的Get请求及参数"></a>测试普通的Get请求及参数</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">MockHttpServletRequest:</span><br><span class="line">      HTTP Method = GET</span><br><span class="line">      Request URI = /spitter</span><br><span class="line">       Parameters = &#123;<span class="keyword">new</span>=[value]&#125;</span><br><span class="line"> </span><br><span class="line">Handler:</span><br><span class="line">             Type = com.vonzhou.spitter.controller.SpitterController</span><br><span class="line">           Method = <span class="keyword">public</span> java.lang.String com.vonzhou.spitter.controller.SpitterController.createSpitterProfile(org.springframework.ui.Model)</span><br><span class="line"></span><br><span class="line">ModelAndView:</span><br><span class="line">        View name = spitters/edit</span><br><span class="line">             View = <span class="keyword">null</span></span><br><span class="line">        Attribute = spitter</span><br><span class="line">            value = com.vonzhou.spitter.persistence.Spitter@<span class="number">7</span>ba4f</span><br><span class="line"></span><br><span class="line">MockHttpServletResponse:</span><br><span class="line">           Status = <span class="number">200</span></span><br><span class="line">    Forwarded URL = spitters/edit</span><br></pre></td></tr></table></figure>
+<h3 id="测试返回JSON"><a href="#测试返回JSON" class="headerlink" title="测试返回JSON"></a>测试返回JSON</h3><p>下面是测试getSpitterInJson的情况</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">MockHttpServletRequest:</span><br><span class="line">      HTTP Method = GET</span><br><span class="line">      Request URI = /spitter/json/test</span><br><span class="line"></span><br><span class="line">Handler:</span><br><span class="line">             Type = com.vonzhou.spitter.controller.SpitterController</span><br><span class="line">           Method = <span class="keyword">public</span> com.vonzhou.spitter.persistence.Spitter com.vonzhou.spitter.controller.SpitterController.getSpitterInJson()</span><br><span class="line"></span><br><span class="line">MockHttpServletResponse:</span><br><span class="line">           Status = <span class="number">200</span></span><br><span class="line">    Error message = <span class="keyword">null</span></span><br><span class="line">          Headers = &#123;Content-Type=[application/json;charset=UTF-<span class="number">8</span>]&#125;</span><br><span class="line">     Content type = application/json;charset=UTF-<span class="number">8</span></span><br><span class="line">             Body = &#123;<span class="string">"id"</span>:<span class="number">100</span>,<span class="string">"username"</span>:<span class="string">"vonzhou"</span>,<span class="string">"password"</span>:<span class="keyword">null</span>,<span class="string">"fullName"</span>:<span class="keyword">null</span>,<span class="string">"spittles"</span>:<span class="keyword">null</span>,<span class="string">"email"</span>:<span class="keyword">null</span>,<span class="string">"updateByEmail"</span>:<span class="keyword">false</span>&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="测试ModelAndView"><a href="#测试ModelAndView" class="headerlink" title="测试ModelAndView"></a>测试ModelAndView</h3><p>下面是测试showSpitterProfile的情况</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">MockHttpServletRequest:</span><br><span class="line">      HTTP Method = GET</span><br><span class="line">      Request URI = /spitter/chown2</span><br><span class="line"></span><br><span class="line">Handler:</span><br><span class="line">             Type = com.vonzhou.spitter.controller.SpitterController</span><br><span class="line">           Method = <span class="keyword">public</span> java.lang.String com.vonzhou.spitter.controller.SpitterController.showSpitterProfile(java.lang.String,org.springframework.ui.Model)</span><br><span class="line"></span><br><span class="line">ModelAndView:</span><br><span class="line">        View name = spitters/view</span><br><span class="line">             View = <span class="keyword">null</span></span><br><span class="line">        Attribute = spitter</span><br><span class="line">            value = com.vonzhou.spitter.persistence.Spitter<span class="meta">@f</span>71c7eaa</span><br><span class="line">           errors = []</span><br><span class="line"></span><br><span class="line">MockHttpServletResponse:</span><br><span class="line">           Status = <span class="number">200</span></span><br><span class="line">    Forwarded URL = spitters/view</span><br></pre></td></tr></table></figure>
+<h3 id="测试上传文件（multipart-form-data类型）"><a href="#测试上传文件（multipart-form-data类型）" class="headerlink" title="测试上传文件（multipart/form-data类型）"></a>测试上传文件（multipart/form-data类型）</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">七月 <span class="number">24</span>, <span class="number">2016</span> <span class="number">2</span>:<span class="number">21</span>:<span class="number">05</span> 下午 com.vonzhou.spitter.controller.SpitterController uploadImage</span><br><span class="line">信息: Spitter name: vonzhou, desc: a student</span><br><span class="line">七月 <span class="number">24</span>, <span class="number">2016</span> <span class="number">2</span>:<span class="number">21</span>:<span class="number">05</span> 下午 com.vonzhou.spitter.controller.SpitterController uploadImage</span><br><span class="line">信息: Spitter avatar file :<span class="number">1</span>.jpeg</span><br><span class="line"></span><br><span class="line">MockHttpServletRequest:</span><br><span class="line">      HTTP Method = POST</span><br><span class="line">      Request URI = /spitter/upload</span><br><span class="line">       Parameters = &#123;name=[vonzhou], desc=[a student]&#125;</span><br><span class="line">          Headers = &#123;Content-Type=[multipart/form-data]&#125;</span><br><span class="line"></span><br><span class="line">Handler:</span><br><span class="line">             Type = com.vonzhou.spitter.controller.SpitterController</span><br><span class="line">           Method = <span class="keyword">public</span> java.lang.String com.vonzhou.spitter.controller.SpitterController.uploadImage(java.lang.String,java.lang.String,org.springframework.web.multipart.MultipartFile)</span><br><span class="line"></span><br><span class="line">ModelAndView:</span><br><span class="line">        View name = spitters/view</span><br><span class="line"> </span><br><span class="line">MockHttpServletResponse:</span><br><span class="line">           Status = <span class="number">200</span> </span><br><span class="line">    Forwarded URL = spitters/view</span><br></pre></td></tr></table></figure>
+<p>上面使用的都是使用 <code>andDo</code>执行 print 这个动作，全过程由我们自己去查看，当然也可以使用 <code>andExpect</code> 执行一次期待， 也就是看结果是否与我们的期待匹配。</p>
+<h2 id="问题记录"><a href="#问题记录" class="headerlink" title="问题记录"></a>问题记录</h2><p>javax.servlet-api的版本要3.0以上，否则<code>java.lang.NoClassDefFoundError: javax/servlet/SessionCookieConfig</code></p>
+<p><a href="http://docs.spring.io/spring/docs/current/spring-framework-reference/html/new-in-4.0.html" target="_blank" rel="external">Spring文档</a>中说明了这一点：</p>
+<blockquote>
+<p> Spring Framework 4.0 is now focused primarily on Servlet 3.0+ environments. If you are using the Spring MVC Test Framework you will need to ensure that a Servlet 3.0 compatible JAR is in your test classpath.</p>
+</blockquote>
+
+      
+    </div>
+
+    <div>
+      
+        
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Java/" rel="tag">#Java</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/07/23/使用MyBatis时的异常处理/" rel="next" title="使用MyBatis时的异常处理">
+                <i class="fa fa-chevron-left"></i> 使用MyBatis时的异常处理
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/08/24/DispatcherServlet 源码阅读（1）/" rel="prev" title="DispatcherServlet 源码阅读（1）">
+                DispatcherServlet 源码阅读（1） <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2016/07/24/使用Spring test测试Controller/"
+           data-title="使用Spring test测试Controller" data-url="http://vonzhou.com/2016/07/24/使用Spring test测试Controller/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/default_avatar.jpg"
+               alt="vonzhou" />
+          <p class="site-author-name" itemprop="name">vonzhou</p>
+          <p class="site-description motion-element" itemprop="description">A Programmer's Notes</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">21</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">8</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/vonzhou" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://www.zhihu.com/people/vonzhou" target="_blank" title="知乎">
+                  
+                    <i class="fa fa-globe"></i>
+                  
+                  知乎
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#使用Spring-test测试Controller"><span class="nav-number">1.</span> <span class="nav-text">使用Spring test测试Controller</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#MockMvc初识"><span class="nav-number">1.1.</span> <span class="nav-text">MockMvc初识</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#测试Controller"><span class="nav-number">1.2.</span> <span class="nav-text">测试Controller</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#测试普通的Get请求及参数"><span class="nav-number">1.2.1.</span> <span class="nav-text">测试普通的Get请求及参数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#测试返回JSON"><span class="nav-number">1.2.2.</span> <span class="nav-text">测试返回JSON</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#测试ModelAndView"><span class="nav-number">1.2.3.</span> <span class="nav-text">测试ModelAndView</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#测试上传文件（multipart-form-data类型）"><span class="nav-number">1.2.4.</span> <span class="nav-text">测试上传文件（multipart/form-data类型）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#问题记录"><span class="nav-number">1.3.</span> <span class="nav-text">问题记录</span></a></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">vonzhou</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"vonzhou"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+  
+
+
+
+
+
+  
+  
+  
+
+  
+
+  
+
+</body>
+</html>
